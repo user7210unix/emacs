@@ -98,7 +98,7 @@ A modern, minimal Emacs configuration focused on productivity and clean aestheti
 ;;   (evil-mode 1))
 ```
 
-## 🔧 Key Bindings
+## Key Bindings
 
 | Binding | Action | Mode |
 |---------|--------|------|
@@ -107,7 +107,7 @@ A modern, minimal Emacs configuration focused on productivity and clean aestheti
 | `C-c C-c` | Execute | Context |
 | `SPC` | Which-key helper | Evil (after setup) |
 
-## 📁 File Structure
+## File Structure
 
 ```
 ~/.emacs.d/
@@ -117,28 +117,32 @@ A modern, minimal Emacs configuration focused on productivity and clean aestheti
 └── auto-save-list/       # Auto-save files
 ```
 
-## 🤝 Contributing
+## Contributing
 
 Feel free to fork this configuration and make it your own! Some ideas:
 
-- 🌐 Add language-specific packages (LSP, syntax highlighting)
-- 🔧 Include project management tools (Projectile, Magit)
-- 📝 Extend with org-mode configuration
-- 🎨 Try different themes and fonts
+- Add language-specific packages (LSP, syntax highlighting)
+- Include project management tools (Projectile, Magit)
+- Extend with org-mode configuration
+- Try different themes and fonts
 
-## 📝 License
+## License
 
 This configuration is free to use and modify. Individual packages maintain their own licenses.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- 📦 [straight.el](https://github.com/radian-software/straight.el) - Package management
-- 🎨 [Doom Themes](https://github.com/doomemacs/themes) - Beautiful themes
-- ⚡ [Corfu](https://github.com/minad/corfu) - Completion framework
-- 🔍 [Vertico](https://github.com/minad/vertico) - Minibuffer completion
+- [straight.el](https://github.com/radian-software/straight.el) - Package management
+- [Doom Themes](https://github.com/doomemacs/themes) - Beautiful themes
+- [Corfu](https://github.com/minad/corfu) - Completion framework
+- [Vertico](https://github.com/minad/vertico) - Minibuffer completion
 
 ---
 
-**Happy Emacs-ing!** 🎉
+<div align="center">
+  
+**Happy Emacs-ing!**
 
-> *"Emacs is not just an editor, it's a way of life."*
+*"Emacs is not just an editor, it's a way of life."*
+
+</div>
