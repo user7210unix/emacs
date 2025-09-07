@@ -18,7 +18,7 @@
 
 *Transform Emacs into a complete living environment - IDE, browser, media player, and more!*
 
-[Features](#-features) • [Installation](#-installation) • [Keybindings](#-keybindings) • [Screenshots](#-screenshots) • [Contributing](#-contributing)
+[Features](#-features) • [Installation](#-installation) • [Keybindings](keybinds.md) • [Screenshots](#-screenshots) • [Contributing](#-contributing)
 
 </div>
 
