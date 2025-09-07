@@ -1,3 +1,6 @@
+<div align="center">
+
+
 # 🚀 Emacs Living Environment
 
 <div align="center">
@@ -12,6 +15,9 @@
 [Features](#-features) • [Installation](#-installation) • [Keybindings](#-keybindings) • [Screenshots](#-screenshots) • [Contributing](#-contributing)
 
 </div>
+
+<div align="left">
+
 
 ## 📖 Overview
 
