@@ -130,7 +130,7 @@ mv ~/.emacs.d ~/.emacs.d.backup
 
 2. **Clone this repository**:
 ```bash
-git clone https://github.com/yourusername/emacs-living-environment.git ~/.emacs.d
+git clone https://github.com/user7210unix/emacs/tree/emacs-living-env ~/.emacs.d
 ```
 
 3. **Install fonts** (essential for icons):
