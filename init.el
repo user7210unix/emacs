@@ -95,8 +95,7 @@
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 
 ;; Show line numbers globally
-(global-display-line-numbers-mode 1)
-(setq display-line-numbers-type 'relative)
+(global-display-line-numbers-mode t) ;;absolute
 
 ;; Show column number
 (column-number-mode 1)
@@ -165,11 +164,11 @@
         evil-undo-system 'undo-redo)
   :config
   (evil-mode 1)
-  
+
   ;; Use visual line motions even outside of visual-line-mode buffers
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-  
+
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal))
 
@@ -218,19 +217,19 @@
     :keymaps '(normal insert visual emacs)
     :prefix "SPC"
     :global-prefix "C-SPC")
-  
+
   ;; Define leader key mappings
   (my/leader-keys
     "f"  '(:ignore t :which-key "files")
     "ff" '(find-file :which-key "find file")
     "fr" '(recentf-open-files :which-key "recent files")
     "fs" '(save-buffer :which-key "save file")
-    
+
     "b"  '(:ignore t :which-key "buffers")
     "bb" '(switch-to-buffer :which-key "switch buffer")
     "bk" '(kill-buffer :which-key "kill buffer")
     "bl" '(list-buffers :which-key "list buffers")
-    
+
     "w"  '(:ignore t :which-key "windows")
     "wh" '(evil-window-left :which-key "window left")
     "wj" '(evil-window-down :which-key "window down")
@@ -239,21 +238,21 @@
     "ws" '(evil-window-split :which-key "split horizontal")
     "wv" '(evil-window-vsplit :which-key "split vertical")
     "wd" '(evil-window-delete :which-key "delete window")
-    
+
     "p"  '(:ignore t :which-key "project")
     "pp" '(projectile-switch-project :which-key "switch project")
     "pf" '(projectile-find-file :which-key "find file in project")
     "pg" '(projectile-ripgrep :which-key "grep in project")
-    
+
     "g"  '(:ignore t :which-key "git")
     "gs" '(magit-status :which-key "git status")
     "gc" '(magit-commit :which-key "git commit")
     "gp" '(magit-push :which-key "git push")
-    
+
     "t"  '(:ignore t :which-key "toggle")
     "tt" '(counsel-load-theme :which-key "choose theme")
     "tn" '(display-line-numbers-mode :which-key "line numbers")
-    
+
     "h"  '(:ignore t :which-key "help")
     "hf" '(describe-function :which-key "describe function")
     "hv" '(describe-variable :which-key "describe variable")
@@ -298,16 +297,37 @@
 ;; PROGRAMMING - IDE FEATURES
 ;; ============================================================================
 
-;; Company mode for autocompletion
-(use-package company
-  :config
-  (global-company-mode t)
-  (setq company-idle-delay 0.2
-        company-minimum-prefix-length 1
-        company-selection-wrap-around t
-        company-show-numbers t
-        company-tooltip-align-annotations t
-        company-require-match 'never))
+;; Corfu: completion popup
+(use-package corfu
+     :ensure t
+     :init
+     (global-corfu-mode))
+
+
+;; Cape: extra completion sources
+(use-package cape
+  :ensure t
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-keyword))
+
+
+;smarter matching
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles ('orderless basic))
+  (completion-styles (('file (styles basic partial-completion)))))
+
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode))
+
+;better navigation and search
+(use-package consult
+  :ensure t)
 
 ;; Company box for better UI
 (use-package company-box
@@ -446,7 +466,7 @@
         emms-playlist-buffer-name "*EMMS Playlist*"
         emms-info-asynchronously t
         emms-show-format "Playing: %s")
-  
+
   ;; Add keybindings for media control
   (global-set-key (kbd "C-c m p") 'emms-pause)
   (global-set-key (kbd "C-c m s") 'emms-stop)
@@ -528,12 +548,6 @@
 ;; Save place in files
 (save-place-mode 1)
 
-;; Auto-save and backup configuration
-(setq auto-save-default t
-      make-backup-files t
-      backup-directory-alist '(("." . "~/.emacs.d/backups"))
-      auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-saves/" t)))
-
 ;; Winner mode - undo/redo window configurations
 (winner-mode 1)
 
@@ -573,8 +587,8 @@
 ;; ============================================================================
 
 ;; Start server for emacsclient
-(unless (server-running-p)
-  (server-start))
+;(unless (server-running-p)
+;  (server-start))
 
 ;; Custom file location
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
