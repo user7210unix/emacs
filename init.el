@@ -1,5 +1,4 @@
 ;; Vintage Emacs Configuration - Light Mode Classic Look
-;; Save this as ~/.emacs.d/init.el or add to your existing config
 
 ;; Package management setup
 (require 'package)
