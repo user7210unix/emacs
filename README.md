@@ -6,7 +6,7 @@
 
 > A vintage, lightweight Emacs configuration that brings back the classic terminal aesthetic with modern IDE features.
 
-![Legacy Emacs Preview](preview-l.png)
+![Legacy Emacs Preview](emacs.png)
 
 ## Features
 
