@@ -30,8 +30,8 @@ The configuration recreates the authentic vintage computing experience while pro
 
 ```bash
 # Clone the repository
-git clone https://github.com/user7210unix/legacy-emacs.git
-cd legacy-emacs
+git clone https://github.com/user7210unix/emacs-legacy.git
+cd emacs-legacy
 
 # Backup your existing config (if any)
 mv ~/.emacs.d ~/.emacs.d.backup 2>/dev/null || true
