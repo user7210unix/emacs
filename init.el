@@ -1,34 +1,66 @@
-;; Remove GUI elements
-(tool-bar-mode -1)             ; Hide the outdated icons
-(scroll-bar-mode -1)           ; Hide the always-visible scrollbar
-(setq inhibit-splash-screen t) ; Remove the "Welcome to GNU Emacs" splash screen
-(setq use-file-dialog nil)      ; Ask for textual confirmation instead of GUI
+;==========================================================
+;   PERFORMANCE OPTIMIZATION
+;==========================================================
 
-;; Set up straight.el
-(defvar bootstrap-version)
-(let ((bootstrap-file
-    (expand-file-name
-      "straight/repos/straight.el/bootstrap.el"
-      (or (bound-and-true-p straight-base-dir)
-        user-emacs-directory)))
-    (bootstrap-version 7))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-      (url-retrieve-synchronously
-       "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-       'silent 'inhibit-cookies)
-    (goto-char (point-max))
-    (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+;; Suppress compilation warnings
+(setq native-comp-async-report-warnings-errors nil)
+(setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+(setq warning-minimum-level :error)
+
+;; Increase garbage collection threshold for faster startup
+(setq gc-cons-threshold (* 50 1000 1000))
+
+;; Reduce startup time
+(setq package-enable-at-startup nil)
+
+;; Restore after startup
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq gc-cons-threshold (* 2 1000 1000))))
+
+(setq inhibit-splash-screen t) ; Remove the "Welcome to GNU Emacs" splash screen
+(tool-bar-mode -1)             ; Hide the outdated icons
+
+;==========================================================
+;   PACKAGE MANAGEMENT
+;==========================================================
+
+(require 'package)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
+(package-initialize)
 
 ;; Install use-package
-(straight-use-package 'use-package)
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
 
-;; Make use-package use straight.el
-(setq straight-use-package-by-default t)
+(require 'use-package)
+(setq use-package-always-ensure t)
 
-;; Always :defer t
-(setq use-package-always-defer t)
+
+(load-theme 'tango t)
+
+;; Line numbers
+(global-display-line-numbers-mode t)
+(setq display-line-numbers-type t)  ; Changed from 'relative to t
+(setq display-line-numbers-width-start t)
+
+;; Disable line numbers in certain modes
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                vterm-mode-hook
+                shell-mode-hook
+                eshell-mode-hook
+                treemacs-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+;; Better scrolling
+(setq scroll-margin 8
+      scroll-conservatively 100000
+      scroll-preserve-screen-position 1)
+
 
 ;; Remove initial scratch message and "For information about GNU Emacs and the 
 ;; GNU system, type C-h C-a"
@@ -42,74 +74,6 @@
 (use-package emacs
   :init
   (defalias 'yes-or-no-p 'y-or-n-p))
-
-;; UTF-8 everywhere
-(use-package emacs
-  :init
-  (set-charset-priority 'unicode)
-  (setq locale-coding-system 'utf-8
-        coding-system-for-read 'utf-8
-        coding-system-for-write 'utf-8)
-  (set-terminal-coding-system 'utf-8)
-  (set-keyboard-coding-system 'utf-8)
-  (set-selection-coding-system 'utf-8)
-  (prefer-coding-system 'utf-8)
-  (setq default-process-coding-system '(utf-8-unix . utf-8-unix)))
-
-;; Use spaces by default, and set tab width to 2
-(use-package emacs
-  :init
-  (setq-default indent-tabs-mode nil)
-  (setq-default tab-width 2))
-
-;; Set up keybindings on macOS
-(use-package emacs
-  :init
-	(when (eq system-type 'darwin)
-		(setq mac-command-modifier 'super)
-		(setq mac-option-modifier 'meta)
-		(setq mac-control-modifier 'control)))
-
-;; Vim keybindings
-(use-package evil
-  :demand ; No lazy loading
-  :config
-  (evil-mode 1))
-
-;; Font
-(use-package emacs
-  :init
-  (set-face-attribute 'default nil 
-    :font "Iosevka Nerd Font" 
-    :height 160))
-
-;; Theme
-(use-package doom-themes
-  :demand
-  :config
-  (load-theme 'doom-challenger-deep t))
-
-;; line numbers
-(global-display-line-numbers-mode t) ;;absolute
-
-
-;; Modeline
-(use-package doom-modeline
-  :ensure t
-  :init (doom-modeline-mode 1))
-
-;; Nerd icons (used by doom-modeline)
-(use-package nerd-icons)
-
-;; ----------------------
-;; Modern Completion Setup
-;; ----------------------
-
-;; Corfu: completion popup
-(use-package corfu
-  :ensure t
-  :init
-  (global-corfu-mode))
 
 ;; Cape: extra completion sources
 (use-package cape
@@ -141,11 +105,62 @@
 ;; Consult: better search & navigation
 (use-package consult
   :ensure t)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(global-display-line-numbers-mode t)
+ '(package-selected-packages '(consult marginalia vertico orderless cape corfu))
+ '(tool-bar-mode nil))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:family "Arial" :foundry "TMC " :slant normal :weight regular :height 151 :width normal)))))
 
-;; Which-key: discoverable keybindings
-(use-package which-key
-  :ensure t
-  :init
-  (which-key-mode))
+;==========================================================
+;   TREEMACS - FILE EXPLORER
+;==========================================================
 
+(use-package treemacs
+  :defer t
+  :config
+  (setq treemacs-width 35
+        treemacs-follow-mode t
+        treemacs-filewatch-mode t
+        treemacs-fringe-indicator-mode 'always
+        treemacs-git-mode 'deferred
+        treemacs-show-hidden-files t
+        treemacs-indentation 2
+        treemacs-indent-guide-style 'line)
 
+  ;; Restore Opened Files
+(progn
+  (desktop-save-mode 1)
+  ;; save when quit
+  (setq desktop-save t)
+
+  ;; no ask if crashed
+  (setq desktop-load-locked-desktop t)
+
+  (setq desktop-restore-frames t)
+
+  (setq desktop-auto-save-timeout 300)
+
+  ;; save some global vars
+  (setq desktop-globals-to-save nil)
+  ;; 2023-09-16 default
+  ;; '(desktop-missing-file-warning tags-file-name tags-table-list search-ring regexp-search-ring register-alist file-name-history)
+  )
+
+(when (< emacs-major-version 25)
+  (require 'saveplace)
+  (setq-default save-place t))
+
+(when (>= emacs-major-version 25)
+  (save-place-mode 1))
+
+;; save minibuffer history
+(savehist-mode 1)
