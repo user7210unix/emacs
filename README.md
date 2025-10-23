@@ -1,4 +1,4 @@
-# Simple Emacs Configuration
+# Java Emacs Configuration
 
 A minimal, reliable Emacs setup that just works. No complexity, no issues.
 
@@ -6,7 +6,6 @@ Simple, fast, and reliable.
 
 ## Features
 
-- **Arial font** - Clear, easy on the eyes for hours of coding without eye strain
 - **Modern completion system** - Vertico + Orderless for smart fuzzy matching
 - **File explorer** - Treemacs for easy navigation
 - **Better defaults** - Sensible settings out of the box
