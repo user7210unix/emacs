@@ -13,6 +13,8 @@ Simple, fast, and reliable.
 - **Performance optimized** - Fast startup and smooth operation
 - **Session management** - Automatically restores your open files
 
+https://xenodium.com/emacs-a-welcoming-experiment/
+
 ## Installation
 
 1. Clone this repository:
