@@ -16,7 +16,7 @@ A minimal, modern Emacs configuration styled to look and feel like a native GNOM
 </td>
 <td width="50%">
 
-<img src="screenshot.png" alt="GNOME Emacs Screenshot" />
+<img src="preview.png" alt="GNOME Emacs Screenshot" />
 
 </td>
 </tr>
