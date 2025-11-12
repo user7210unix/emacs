@@ -49,10 +49,6 @@ This configuration transforms Emacs into a clean, distraction-free editor that s
 - **Line numbers** in programming modes
 - **Smooth scrolling** with pixel precision
 
-## Screenshots
-
-*Add screenshots of your setup here showing the clean interface, completion, and LSP features*
-
 ## Prerequisites
 
 - **Emacs 26.0.50 or later** (for native line numbers)
