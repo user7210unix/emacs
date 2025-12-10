@@ -13,20 +13,6 @@ Simple, fast, and reliable.
 - **Performance optimized** - Fast startup and smooth operation
 - **Session management** - Automatically restores your open files
 
-https://xenodium.com/emacs-a-welcoming-experiment/
-
-## Installation
-
-1. Clone this repository:
-```bash
-git clone <your-repo-url> ~/.emacs.d
-```
-
-2. Start Emacs:
-```bash
-emacs
-```
-
 That's it! Packages will install automatically on first launch.
 
 ## What's Included
