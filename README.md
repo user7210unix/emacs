@@ -13,18 +13,17 @@ Uses modern built-in tools where possible, `use-package` for everything else.
 
 - Optimised startup (GC tuning, lazy loading)
 - Modern completion: vertico + orderless + consult + marginalia + embark
-- Doom modeline with nerd-icons
-- JetBrains Mono + ligatures (if installed)
 - Eglot + jdtls for Java (Eclipse LSP)
 - Company, flycheck, yasnippet
 - Highlight indent guides, rainbow delimiters
 - Sensible defaults: no backup files, no lockfiles, auto-revert, recentf, savehist, saveplace
-- Tango-dark theme
-- Basic org and eshell tweaks
+- Doom-nord-light theme
+- Basic org and
+- Eat shell
 
-## Preview of the theme Tango-dark
+## Preview of the theme Doom-nord-light
 
-<img src="https://lh3.googleusercontent.com/proxy/SCEvTpD5pFWF809u-RG9Xd2d88zfsJ2XR63PGmsW56j7-1FPuSmeEEsZjQIBEQZq9ZXnT9QGurrtthqN_laZfbxDv-bysO8MpZWpaiEhDsw0eWeEjlgQHoZ2xXsIw-C5" 
+<img src="https://external-preview.redd.it/ZsrRaB5Tc_NjNTcPo6Mc6jMML7u8XgGWZkUN8MBqs4o.jpg?auto=webp&s=21d7dbd32ddad44f97987ac6c353f6f5a918e5bb" 
      alt="Tango-dark" 
      width="430" 
      style="display: block; margin: 0 auto 1.5em;">
