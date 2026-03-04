@@ -25,7 +25,7 @@ Uses modern built-in tools where possible, `use-package` for everything else.
 
 <img src="https://external-preview.redd.it/ZsrRaB5Tc_NjNTcPo6Mc6jMML7u8XgGWZkUN8MBqs4o.jpg?auto=webp&s=21d7dbd32ddad44f97987ac6c353f6f5a918e5bb" 
      alt="Tango-dark" 
-     width="430" 
+     width="830" 
      style="display: block; margin: 0 auto 1.5em;">
 ## Installation
 
