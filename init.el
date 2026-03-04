@@ -163,60 +163,25 @@
       mouse-wheel-scroll-amount '(1 ((shift) . 1))
       mouse-wheel-progressive-speed nil)
 
+;; ===================
 ;; Font configuration
-(when (member "JetBrainsMono Nerd Font" (font-family-list))
+;; ===================
+
+(when (member "CaskaydiaCove Nerd Font" (font-family-list))
   (set-face-attribute 'default nil
-                      :family "JetBrainsMono Nerd Font"
-                      :height 123
-                      :weight 'regular)
-  
-  ;; Make comments italic and smaller for focus
-  (set-face-attribute 'font-lock-comment-face nil
-                      :slant 'italic
-                      :height 0.9)
-  (set-face-attribute 'font-lock-doc-face nil
-                      :slant 'italic
-                      :height 0.9))
+                      :family "CaskaydiaCove Nerd Font"
+                      :height 125
+                      :weight 'regular))
+
+;; slightly nicer line spacing
+;; (setq-default line-spacing 0.12)
 
 ;; Color theme
-(use-package emacs
+(use-package doom-themes
   :ensure nil
   :demand t
   :config
-  (load-theme 'tango-dark t))
-
-;; =================================================================
-;; Modeline - doom-modeline
-;; =================================================================
-
-(use-package nerd-icons
-  :demand t
-  :config
-  ;; Run M-x nerd-icons-install-fonts on first use
-  (when (and (display-graphic-p)
-             (not (find-font (font-spec :name "Symbols Nerd Font Mono"))))
-    (nerd-icons-install-fonts t)))
-
-(use-package doom-modeline
-  :demand t
-  :after nerd-icons
-  :config
-  (setq doom-modeline-height 26
-        doom-modeline-bar-width 3
-        doom-modeline-buffer-file-name-style 'truncate-upto-project
-        doom-modeline-icon t
-        doom-modeline-major-mode-icon t
-        doom-modeline-major-mode-color-icon nil
-        doom-modeline-buffer-encoding nil
-        doom-modeline-buffer-modification-icon t
-        doom-modeline-minor-modes nil
-        doom-modeline-enable-word-count nil
-        doom-modeline-buffer-state-icon t
-        doom-modeline-lsp t
-        doom-modeline-check-simple-format t
-        doom-modeline-vcs-max-length 20
-        doom-modeline-env-version nil)
-  (doom-modeline-mode 1))
+  (load-theme 'doom-nord-light t))
 
 ;; =================================================================
 ;; Completion Framework - Vertico & Friends
@@ -319,61 +284,46 @@
 ;; Java Development with Eglot
 ;; =================================================================
 
-;; Eglot - Built-in LSP client (Emacs 29+)
-;; More lightweight than lsp-mode, works great with jdtls
 (use-package eglot
   :ensure nil
   :hook (java-mode . eglot-ensure)
   :bind (:map eglot-mode-map
-              ("C-c l a" . eglot-code-actions)
-              ("C-c l r" . eglot-rename)
-              ("C-c l f" . eglot-format)
-              ("C-c l d" . eldoc-doc-buffer)
-              ("C-c l o" . eglot-code-action-organize-imports))
+         ("C-c l a" . eglot-code-actions)
+         ("C-c l r" . eglot-rename)
+         ("C-c l f" . eglot-format)
+         ("C-c l d" . eldoc-doc-buffer)
+         ("C-c l o" . eglot-code-action-organize-imports))
   :config
-  ;; Eglot settings
   (setq eglot-autoshutdown t
         eglot-send-changes-idle-time 0.5
-        eglot-sync-connect nil  ; Don't block Emacs waiting for server
-        eglot-connect-timeout 10)
-  
-  ;; Performance: Reduce events-buffer size
-  (setq eglot-events-buffer-size 0)
-  
-  ;; Silence confirmation prompts
-  (setq eglot-confirm-server-initiated-edits nil)
-  
+        eglot-sync-connect nil
+        eglot-connect-timeout 10
+        eglot-events-buffer-size 0
+        eglot-confirm-server-initiated-edits nil)
+
   ;; JDTLS Configuration
   (defvar my/jdtls-path (expand-file-name "~/.local/share/jdtls"))
   (defvar my/jdtls-workspace-path (expand-file-name "~/.cache/jdtls-workspace"))
-  
-  ;; Create workspace directory if it doesn't exist
+
   (unless (file-directory-p my/jdtls-workspace-path)
     (make-directory my/jdtls-workspace-path t))
-  
-  ;; Function to find the launcher jar automatically
+
   (defun my/jdtls-find-launcher-jar ()
     "Find the Eclipse Equinox launcher jar in jdtls plugins directory."
     (let ((plugins-dir (expand-file-name "plugins" my/jdtls-path)))
       (when (file-directory-p plugins-dir)
         (let ((jars (directory-files plugins-dir t "org\\.eclipse\\.equinox\\.launcher_.*\\.jar$")))
-          (when jars
-            (car jars))))))
-  
-  ;; Function to get project-specific workspace
+          (when jars (car jars))))))
+
   (defun my/jdtls-workspace-for-project ()
     "Return workspace directory for current project."
     (let* ((project-root (or (and (fboundp 'project-root)
                                    (when-let ((proj (project-current)))
-                                     (if (fboundp 'project-root)
-                                         (project-root proj)
-                                       (car (project-roots proj)))))
+                                     (project-root proj)))
                              default-directory))
-           (project-name (file-name-nondirectory 
-                         (directory-file-name project-root))))
+           (project-name (file-name-nondirectory (directory-file-name project-root))))
       (expand-file-name project-name my/jdtls-workspace-path)))
-  
-  ;; Configure jdtls server only if launcher jar exists
+
   (let ((launcher-jar (my/jdtls-find-launcher-jar))
         (config-dir (expand-file-name "config_linux" my/jdtls-path)))
     (if (and launcher-jar (file-exists-p launcher-jar) (file-directory-p config-dir))
@@ -381,28 +331,27 @@
           (message "JDTLS configured with jar: %s" launcher-jar)
           (add-to-list 'eglot-server-programs
                        `(java-mode . ("java"
-                                     "-Declipse.application=org.eclipse.jdt.ls.core.id1"
-                                     "-Dosgi.bundles.defaultStartLevel=4"
-                                     "-Declipse.product=org.eclipse.jdt.ls.core.product"
-                                     "-Dlog.protocol=true"
-                                     "-Dlog.level=ALL"
-                                     "-Xms256m"
-                                     "-Xmx2048m"
-                                     "--add-modules=ALL-SYSTEM"
-                                     "--add-opens" "java.base/java.util=ALL-UNNAMED"
-                                     "--add-opens" "java.base/java.lang=ALL-UNNAMED"
-                                     "-jar" ,launcher-jar
-                                     "-configuration" ,config-dir
-                                     "-data" ,(my/jdtls-workspace-for-project)))))
+                                      "-Declipse.application=org.eclipse.jdt.ls.core.id1"
+                                      "-Dosgi.bundles.defaultStartLevel=4"
+                                      "-Declipse.product=org.eclipse.jdt.ls.core.product"
+                                      "-Dlog.protocol=true"
+                                      "-Dlog.level=ALL"
+                                      "-Xms256m"
+                                      "-Xmx2048m"
+                                      "--add-modules=ALL-SYSTEM"
+                                      "--add-opens" "java.base/java.util=ALL-UNNAMED"
+                                      "--add-opens" "java.base/java.lang=ALL-UNNAMED"
+                                      "-jar" ,launcher-jar
+                                      "-configuration" ,config-dir
+                                      "-data" ,(my/jdtls-workspace-for-project)))))
       (message "WARNING: JDTLS not found at %s - Java LSP features will not be available" my/jdtls-path)))
-  
-  ;; Don't prompt for server edits - just apply them
+
   (advice-add 'eglot--apply-workspace-edit :around
               (lambda (fn &rest args)
                 (let ((yes-or-no-p (lambda (&rest _) t)))
                   (apply fn args)))))
 
-;; Additional eglot keybindings (alternative method if :bind doesn't work)
+;; Additional eglot keybindings
 (with-eval-after-load 'eglot
   (define-key eglot-mode-map (kbd "C-c l a") 'eglot-code-actions)
   (define-key eglot-mode-map (kbd "C-c l r") 'eglot-rename)
@@ -414,21 +363,15 @@
 (use-package cc-mode
   :ensure nil
   :mode ("\\.java\\'" . java-mode)
-  :bind (:map java-mode-map
-              ("C-c i" . my/java-insert-common-imports))
+  :bind (:map java-mode-map ("C-c i" . my/java-insert-common-imports))
   :config
-  ;; Java style preferences
   (setq c-basic-offset 4
         java-ts-mode-indent-offset 4)
-  
-  ;; Add common Java imports quickly
+
   (defun my/java-insert-common-imports ()
     "Insert commonly used Java imports."
     (interactive)
-    (let ((imports '("java.util.*"
-                    "java.io.*"
-                    "java.nio.file.*"
-                    "java.util.stream.*")))
+    (let ((imports '("java.util.*" "java.io.*" "java.nio.file.*" "java.util.stream.*")))
       (save-excursion
         (goto-char (point-min))
         (search-forward "package " nil t)
@@ -441,16 +384,11 @@
   :ensure nil
   :hook (java-mode . my/java-compile-command)
   :config
-  ;; Custom compile commands for Java
   (defun my/java-compile-command ()
     "Set compile command based on project structure."
-    (cond
-     ((file-exists-p "pom.xml")
-      (setq-local compile-command "mvn compile"))
-     ((file-exists-p "build.gradle")
-      (setq-local compile-command "gradle build"))
-     (t
-      (setq-local compile-command "javac *.java")))))
+    (cond ((file-exists-p "pom.xml")      (setq-local compile-command "mvn compile"))
+          ((file-exists-p "build.gradle") (setq-local compile-command "gradle build"))
+          (t                              (setq-local compile-command "javac *.java")))))
 
 ;; =================================================================
 ;; Project Management
@@ -468,14 +406,9 @@
 (use-package eshell
   :ensure nil
   :config
-  ;; Disable company in eshell (can be slow)
-  (add-hook 'eshell-mode-hook
-            (lambda ()
-              (company-mode -1)))
-  
-  ;; Eshell visual commands
-  (setq eshell-visual-commands '("vi" "vim" "screen" "tmux" "top" "htop" "less" "more"))
-  (setq eshell-destroy-buffer-when-process-dies t))
+  (add-hook 'eshell-mode-hook (lambda () (company-mode -1)))
+  (setq eshell-visual-commands '("vi" "vim" "screen" "tmux" "top" "htop" "less" "more")
+        eshell-destroy-buffer-when-process-dies t))
 
 ;; =================================================================
 ;; Org Mode
@@ -490,46 +423,83 @@
         org-hide-emphasis-markers t
         org-ellipsis " ▾"))
 
+;; ================================================================
+;; Terminal - Eat
+;; ================================================================
+(use-package eat
+  :config
+  (setq eat-kill-buffer-on-exit t
+        eat-enable-yank-to-terminal t
+        eat-enable-directory-tracking t
+        eat-enable-shell-command-history t
+        eat-enable-shell-prompt-annotation t
+        eat-term-scrollback-size nil)
+  ;; For `eat-eshell-mode' -- integration with eshell.
+  (with-eval-after-load 'eshell
+    (eat-eshell-mode)))
+
+;; ================================================================
+;; Modeline
+;; ================================================================
+
+(use-package mood-line
+  :config
+  (mood-line-mode)
+  :custom
+  (mood-line-glyph-alist mood-line-glyphs-fira-code))
+
 ;; =================================================================
 ;; File Management & Dired
 ;; =================================================================
 
+;; =================================================================
+;; File Management – Dired (clean + icons)
+;; =================================================================
+
 (use-package dired
-  :ensure nil
+  :ensure nil                         ; built-in
+  :hook (dired-mode . dired-hide-details-mode)
   :config
-  (setq dired-listing-switches "-alh --group-directories-first"
-        dired-dwim-target t
-        dired-kill-when-opening-new-dired-buffer t))
+  (setq dired-listing-switches    "-alh --group-directories-first"
+        dired-dwim-target          t
+        dired-kill-when-opening-new-dired-buffer t
+
+        ;; Optional but often wanted together with hidden details:
+        ;;   still show symlink target →  (→ target)
+        dired-hide-details-hide-symlink-targets nil)
+
+  ;; Optional: make toggling details feel natural (default is already "(")
+  ;; You can also bind something more convenient if you want, e.g.:
+  ;; (define-key dired-mode-map (kbd ")") #'dired-hide-details-mode)
+  )
+
+(use-package nerd-icons-dired
+  :ensure t
+  :hook (dired-mode . nerd-icons-dired-mode))
 
 ;; =================================================================
 ;; Terminal Integration
 ;; =================================================================
 
-;; Better terminal integration for i3wm
 (use-package xterm-color
   :config
-  ;; Use xterm-color for better color support
   (add-hook 'compilation-start-hook
             (lambda (proc)
               (when (process-live-p proc)
                 (set-process-filter
                  proc
                  (lambda (proc string)
-                   (comint-output-filter
-                    proc
-                    (xterm-color-filter string))))))))
+                   (comint-output-filter proc (xterm-color-filter string))))))))
 
 ;; =================================================================
 ;; Keybindings
 ;; =================================================================
 
-;; Global useful bindings
 (global-set-key (kbd "C-c c") #'compile)
 (global-set-key (kbd "C-c r") #'recompile)
 (global-set-key (kbd "C-c e") #'eshell)
 (global-set-key (kbd "C-c k") #'kill-this-buffer)
 
-;; Window management
 (global-set-key (kbd "M-o") #'other-window)
 (global-set-key (kbd "C-x C-b") #'ibuffer)
 
