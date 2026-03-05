@@ -1,12 +1,10 @@
-;; =================================================================
 ;; Package System Setup
-;; =================================================================
 
 (require 'package)
 
 (setq package-archives
-      '(("melpa" . "https://melpa.org/packages/")
-        ("gnu"   . "https://elpa.gnu.org/packages/")
+      '(("melpa"  . "https://melpa.org/packages/")
+        ("gnu"    . "https://elpa.gnu.org/packages/")
         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 
 (package-initialize)
@@ -22,22 +20,18 @@
 (eval-when-compile
   (require 'use-package))
 
-;; Ensure bind-keys is available for :bind keyword
 (require 'bind-key)
 
-;; Always ensure packages are installed
 (setq use-package-always-ensure t
-      use-package-always-defer t  ; Lazy load by default
+      use-package-always-defer t
       use-package-expand-minimally t)
 
-;; =================================================================
 ;; Performance & Startup
-;; =================================================================
 
 ;; Reset GC threshold after startup (set high in early-init.el)
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (setq gc-cons-threshold (* 16 1024 1024) ; 16MB
+            (setq gc-cons-threshold (* 16 1024 1024)
                   gc-cons-percentage 0.1)))
 
 ;; Profile startup time
@@ -49,39 +43,33 @@
                               (time-subtract after-init-time before-init-time)))
                      gcs-done)))
 
-;; =================================================================
+
 ;; General Settings
-;; =================================================================
 
-;; Better defaults
 (setq-default
- ad-redefinition-action 'accept                 ; Silence warnings
- auto-save-default nil                           ; No auto-save files
- create-lockfiles nil                            ; No lock files
- fill-column 80                                  ; Line width
- help-window-select t                            ; Focus help windows
- indent-tabs-mode nil                            ; Use spaces
- make-backup-files nil                           ; No backup files
- require-final-newline t                         ; End files with newline
- tab-width 4                                     ; Tab display width
- truncate-lines nil                              ; Wrap long lines
- vc-follow-symlinks t)                           ; Follow symlinks
+ ad-redefinition-action 'accept
+ auto-save-default nil
+ create-lockfiles nil
+ fill-column 80
+ help-window-select t
+ indent-tabs-mode nil
+ make-backup-files nil
+ require-final-newline t
+ tab-width 4
+ truncate-lines nil
+ vc-follow-symlinks t)
 
-;; User interface
-(defalias 'yes-or-no-p 'y-or-n-p)               ; Short answers
-(setq ring-bell-function 'ignore)               ; No bell
-(setq confirm-kill-emacs 'y-or-n-p)             ; Confirm before exit
+(defalias 'yes-or-no-p 'y-or-n-p)
+(setq ring-bell-function 'ignore)
+(setq confirm-kill-emacs 'y-or-n-p)
 
-;; Silence annoying prompts and warnings
-(setq read-process-output-max (* 1024 1024)     ; 1MB read buffer for LSP
-      warning-minimum-level :error)              ; Only show errors, not warnings
+(setq read-process-output-max (* 1024 1024)
+      warning-minimum-level :error)
 
-;; Keep custom settings in separate file
 (setq custom-file (locate-user-emacs-file "custom.el"))
 (when (file-exists-p custom-file)
   (load custom-file t))
 
-;; Remember recent files
 (use-package recentf
   :ensure nil
   :demand t
@@ -91,7 +79,6 @@
         recentf-auto-cleanup 'never)
   (recentf-mode 1))
 
-;; Save minibuffer history
 (use-package savehist
   :ensure nil
   :demand t
@@ -101,29 +88,17 @@
         savehist-save-minibuffer-history t)
   (savehist-mode 1))
 
-;; Remember point position in files
 (use-package saveplace
   :ensure nil
   :demand t
   :config
   (save-place-mode 1))
 
-;; Auto-revert buffers when files change on disk
-(use-package autorevert
-  :ensure nil
-  :demand t
-  :config
-  (setq auto-revert-interval 2
-        auto-revert-check-vc-info t
-        global-auto-revert-non-file-buffers t
-        auto-revert-verbose nil)
-  (global-auto-revert-mode 1))
 
-;; =================================================================
 ;; Visual Settings
-;; =================================================================
 
-;; Line numbers in programming modes
+;; (internal-border-width . 0)
+
 (use-package display-line-numbers
   :ensure nil
   :hook (prog-mode . display-line-numbers-mode)
@@ -131,7 +106,6 @@
   (setq display-line-numbers-type 'absolute
         display-line-numbers-width-start t))
 
-;; Show matching parentheses
 (use-package paren
   :ensure nil
   :demand t
@@ -141,14 +115,12 @@
         show-paren-when-point-inside-paren t)
   (show-paren-mode 1))
 
-;; Electric pair mode for auto-closing brackets
 (use-package elec-pair
   :ensure nil
   :demand t
   :config
   (electric-pair-mode 1))
 
-;; Smooth pixel scrolling (Emacs 29+)
 (use-package pixel-scroll
   :ensure nil
   :demand t
@@ -156,16 +128,13 @@
   :config
   (pixel-scroll-precision-mode 1))
 
-;; Scrolling behavior
-(setq scroll-margin 3
+(setq scroll-margin 5
       scroll-conservatively 101
       scroll-preserve-screen-position t
       mouse-wheel-scroll-amount '(1 ((shift) . 1))
       mouse-wheel-progressive-speed nil)
 
-;; ===================
 ;; Font configuration
-;; ===================
 
 (when (member "CaskaydiaCove Nerd Font" (font-family-list))
   (set-face-attribute 'default nil
@@ -173,20 +142,39 @@
                       :height 125
                       :weight 'regular))
 
-;; slightly nicer line spacing
-;; (setq-default line-spacing 0.12)
+;; Italic comments — applied after theme loads
+(defun my/set-italic-comments ()
+  "Make comments italic."
+  (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
+  (set-face-attribute 'font-lock-comment-delimiter-face nil :slant 'italic))
 
-;; Color theme
-(use-package doom-themes
+;; (use-package moe-theme
+;;   :ensure nil
+;;   :demand t
+;;   :config
+;;   (load-theme 'moe-dark t)
+;;   (my/set-italic-comments))
+
+(use-package ef-themes
   :ensure nil
   :demand t
   :config
-  (load-theme 'doom-nord-light t))
+  (load-theme 'ef-elea-dark t)
+  (my/set-italic-comments))
 
-;; =================================================================
-;; Completion Framework - Vertico & Friends
-;; =================================================================
 
+;; Frame defaults
+
+(setq frame-title-format '("%b — Emacs"))
+(setq default-frame-alist
+      '((min-height . 1)
+        (min-width  . 1)
+        (internal-border-width . 0)
+        (vertical-scroll-bars   . nil)
+        (horizontal-scroll-bars . nil)))
+
+
+;; Completion Framework — Vertico & Friends
 (use-package vertico
   :demand t
   :config
@@ -194,6 +182,20 @@
         vertico-resize nil
         vertico-count 12)
   (vertico-mode 1))
+
+;; Floating posframe for M-x, find-file and all minibuffer commands.
+;; Requires a graphical Emacs session (no-op in terminal).
+(use-package vertico-posframe
+  :demand t
+  :after vertico
+  :if (display-graphic-p)
+  :config
+  (setq vertico-posframe-width 100
+        vertico-posframe-height vertico-count
+        vertico-posframe-border-width 2
+        vertico-posframe-poshandler #'posframe-poshandler-frame-center ;; centeres the floating minibuffers
+        vertico-posframe-parameters '((left-fringe . 8) (right-fringe . 8)))
+  (vertico-posframe-mode 1))
 
 (use-package orderless
   :demand t
@@ -208,6 +210,13 @@
   :after vertico
   :config
   (marginalia-mode 1))
+
+;; Nerd icons in the minibuffer completion list
+(use-package nerd-icons-completion
+  :after marginalia
+  :config
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
 
 (use-package consult
   :bind (("C-s"     . consult-line)
@@ -227,11 +236,9 @@
 (use-package embark-consult
   :after (embark consult))
 
-;; =================================================================
-;; Programming - General
-;; =================================================================
 
-;; Indentation guides
+;; Programming — General
+
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
   :config
@@ -243,35 +250,68 @@
         highlight-indent-guides-auto-even-face-perc 10
         highlight-indent-guides-auto-character-face-perc 15))
 
-;; Rainbow delimiters for better bracket visibility
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
-;; Company - Autocompletion
-(use-package company
-  :hook (after-init . global-company-mode)
-  :bind (:map company-active-map
-         ("C-n" . company-select-next)
-         ("C-p" . company-select-previous)
-         ("<tab>" . company-complete-selection))
-  :config
-  (setq company-minimum-prefix-length 1
-        company-idle-delay 0.1
-        company-show-quick-access t
-        company-tooltip-align-annotations t
-        company-tooltip-limit 10
-        company-backends '(company-capf company-files company-keywords)
-        ;; Disable in eshell
-        company-global-modes '(not eshell-mode shell-mode)))
 
-;; Flycheck - Syntax checking
+;; Autocompletion — Corfu (replaces Company)
+;;
+;; Corfu is the modern choice: it uses Emacs' native completion-at-point API
+;; directly, pairs perfectly with Eglot, and renders a clean childframe popup.
+
+(use-package corfu
+  :demand t
+  :bind (:map corfu-map
+         ("C-n"   . corfu-next)
+         ("C-p"   . corfu-previous)
+         ("<tab>" . corfu-insert))
+  :custom
+  (corfu-cycle t)
+  (corfu-auto t)
+  (corfu-auto-delay 0.15)
+  (corfu-auto-prefix 1)
+  (corfu-preview-current nil)
+  (corfu-min-width 20)
+  (corfu-quit-no-match t)
+  (corfu-on-exact-match 'insert)
+  :config
+  ;; Show doc popup next to completions (replaces company-quickhelp)
+  (setq corfu-popupinfo-delay '(0.5 . 0.2))
+  (corfu-popupinfo-mode 1)
+  ;; Persist history across sessions
+  (with-eval-after-load 'savehist
+    (corfu-history-mode 1)
+    (add-to-list 'savehist-additional-variables 'corfu-history))
+  (global-corfu-mode 1))
+
+;; Cape provides extra completion backends (dabbrev, file paths, etc.)
+(use-package cape
+  :demand t
+  :config
+  (add-hook 'completion-at-point-functions #'cape-dabbrev 20)
+  (add-hook 'completion-at-point-functions #'cape-file 20)
+  (add-hook 'completion-at-point-functions #'cape-keyword 20))
+
+;; Kind-icon adds VS Code-style icons to the Corfu popup
+(use-package kind-icon
+  :after corfu
+  :custom
+  (kind-icon-default-face 'corfu-default)
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+
+
+;; Flycheck — Syntax checking
+
 (use-package flycheck
   :hook (prog-mode . flycheck-mode)
   :config
   (setq flycheck-check-syntax-automatically '(save mode-enabled)
         flycheck-display-errors-delay 0.25))
 
-;; Yasnippet - Snippet expansion
+
+;; Snippets
+
 (use-package yasnippet
   :hook (prog-mode . yas-minor-mode)
   :config
@@ -280,9 +320,58 @@
 (use-package yasnippet-snippets
   :after yasnippet)
 
-;; =================================================================
+
+;; EWW Browser
+
+(use-package eww
+  :ensure nil
+  :bind (("C-c w" . eww)
+         :map eww-mode-map
+         ("h" . eww-list-histories)
+         ("b" . eww-add-bookmark)
+         ("B" . eww-list-bookmarks)
+         ("o" . eww)
+         ("&" . eww-browse-with-external-browser))
+  :config
+  ;; Readability
+  (setq shr-use-fonts t               ; variable-pitch fonts for prose
+        shr-use-colors nil             ; ignore garish site colors
+        shr-indentation 4              ; left margin
+        shr-width 80                   ; max line width, like your fill-column
+        shr-max-image-proportion 0.5   ; images don't take over the buffer
+        shr-inhibit-images nil)        ; images on by default, toggle with M-I
+
+  ;; EWW itself
+  (setq eww-search-prefix "https://duckduckgo.com/html/?q="
+        eww-history-limit 100
+        eww-download-directory (expand-file-name "~/Downloads/")
+        eww-browse-url-new-window-is-tab nil)
+
+  ;; Use variable-pitch (serif/sans) face for readability in eww buffers
+  (add-hook 'eww-mode-hook #'variable-pitch-mode)
+
+  ;; Auto-use eww's readable mode (strips nav, ads, sidebars) on page load.
+  ;; Comment this out if you want the raw page instead.
+  (add-hook 'eww-after-render-hook #'eww-readable))
+
+;; Documentation popups — Eldoc Box
+
+(use-package eldoc-box
+  :hook (eglot-managed-mode . eldoc-box-hover-mode)
+  :custom
+  ;; Show the popup in the upper corner; use eldoc-box-hover-at-point-mode
+  (eldoc-box-max-pixel-width  500)
+  (eldoc-box-max-pixel-height 300)
+  :config
+  ;; Let Eglot render Markdown in the doc box (needs markdown-mode installed)
+  (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly))
+
+;; Markdown mode for prettier Javadoc rendering inside eldoc-box
+(use-package markdown-mode
+  :mode ("\\.md\\'" . markdown-mode))
+
+
 ;; Java Development with Eglot
-;; =================================================================
 
 (use-package eglot
   :ensure nil
@@ -351,18 +440,25 @@
                 (let ((yes-or-no-p (lambda (&rest _) t)))
                   (apply fn args)))))
 
-;; Additional eglot keybindings
+;; C++ via clangd — hook eglot into c++-mode as well
 (with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs '((c++-mode c-mode) . ("clangd")))
+  (add-hook 'c++-mode-hook #'eglot-ensure)
   (define-key eglot-mode-map (kbd "C-c l a") 'eglot-code-actions)
   (define-key eglot-mode-map (kbd "C-c l r") 'eglot-rename)
   (define-key eglot-mode-map (kbd "C-c l f") 'eglot-format)
   (define-key eglot-mode-map (kbd "C-c l d") 'eldoc-doc-buffer)
   (define-key eglot-mode-map (kbd "C-c l o") 'eglot-code-action-organize-imports))
 
+
 ;; Java mode configuration
+
 (use-package cc-mode
   :ensure nil
-  :mode ("\\.java\\'" . java-mode)
+  :mode (("\\.java\\'" . java-mode)
+         ("\\.cpp\\'"  . c++-mode)
+         ("\\.cc\\'"   . c++-mode)
+         ("\\.h\\'"    . c++-mode))
   :bind (:map java-mode-map ("C-c i" . my/java-insert-common-imports))
   :config
   (setq c-basic-offset 4
@@ -379,7 +475,6 @@
         (dolist (import imports)
           (insert (format "import %s;\n" import)))))))
 
-;; Maven/Gradle integration helper
 (use-package compile
   :ensure nil
   :hook (java-mode . my/java-compile-command)
@@ -390,29 +485,26 @@
           ((file-exists-p "build.gradle") (setq-local compile-command "gradle build"))
           (t                              (setq-local compile-command "javac *.java")))))
 
-;; =================================================================
+
 ;; Project Management
-;; =================================================================
 
 (use-package project
   :ensure nil
   :config
   (setq project-vc-extra-root-markers '(".project" "pom.xml" "build.gradle")))
 
-;; =================================================================
+
 ;; Eshell Configuration
-;; =================================================================
 
 (use-package eshell
   :ensure nil
   :config
-  (add-hook 'eshell-mode-hook (lambda () (company-mode -1)))
+  (add-hook 'eshell-mode-hook (lambda () (corfu-mode -1)))
   (setq eshell-visual-commands '("vi" "vim" "screen" "tmux" "top" "htop" "less" "more")
         eshell-destroy-buffer-when-process-dies t))
 
-;; =================================================================
+
 ;; Org Mode
-;; =================================================================
 
 (use-package org
   :ensure nil
@@ -423,9 +515,9 @@
         org-hide-emphasis-markers t
         org-ellipsis " ▾"))
 
-;; ================================================================
-;; Terminal - Eat
-;; ================================================================
+
+;; Terminal — Eat
+
 (use-package eat
   :config
   (setq eat-kill-buffer-on-exit t
@@ -434,52 +526,26 @@
         eat-enable-shell-command-history t
         eat-enable-shell-prompt-annotation t
         eat-term-scrollback-size nil)
-  ;; For `eat-eshell-mode' -- integration with eshell.
   (with-eval-after-load 'eshell
     (eat-eshell-mode)))
 
-;; ================================================================
-;; Modeline
-;; ================================================================
 
-(use-package mood-line
-  :config
-  (mood-line-mode)
-  :custom
-  (mood-line-glyph-alist mood-line-glyphs-fira-code))
-
-;; =================================================================
-;; File Management & Dired
-;; =================================================================
-
-;; =================================================================
-;; File Management – Dired (clean + icons)
-;; =================================================================
+;; File Management — Dired
 
 (use-package dired
-  :ensure nil                         ; built-in
+  :ensure nil
   :hook (dired-mode . dired-hide-details-mode)
   :config
   (setq dired-listing-switches    "-alh --group-directories-first"
         dired-dwim-target          t
         dired-kill-when-opening-new-dired-buffer t
-
-        ;; Optional but often wanted together with hidden details:
-        ;;   still show symlink target →  (→ target)
-        dired-hide-details-hide-symlink-targets nil)
-
-  ;; Optional: make toggling details feel natural (default is already "(")
-  ;; You can also bind something more convenient if you want, e.g.:
-  ;; (define-key dired-mode-map (kbd ")") #'dired-hide-details-mode)
-  )
+        dired-hide-details-hide-symlink-targets nil))
 
 (use-package nerd-icons-dired
-  :ensure t
   :hook (dired-mode . nerd-icons-dired-mode))
 
-;; =================================================================
+
 ;; Terminal Integration
-;; =================================================================
 
 (use-package xterm-color
   :config
@@ -491,21 +557,16 @@
                  (lambda (proc string)
                    (comint-output-filter proc (xterm-color-filter string))))))))
 
-;; =================================================================
+
 ;; Keybindings
-;; =================================================================
 
 (global-set-key (kbd "C-c c") #'compile)
 (global-set-key (kbd "C-c r") #'recompile)
 (global-set-key (kbd "C-c e") #'eshell)
 (global-set-key (kbd "C-c k") #'kill-this-buffer)
-
-(global-set-key (kbd "M-o") #'other-window)
+(global-set-key (kbd "M-o")   #'other-window)
 (global-set-key (kbd "C-x C-b") #'ibuffer)
 
-;; =================================================================
-;; Final Message
-;; =================================================================
 
 (message "Emacs configuration loaded successfully!")
 
