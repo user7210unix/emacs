@@ -155,13 +155,15 @@
 ;;   (load-theme 'moe-dark t)
 ;;   (my/set-italic-comments))
 
-(use-package ef-themes
-  :ensure nil
-  :demand t
-  :config
-  (load-theme 'ef-elea-dark t)
-  (my/set-italic-comments))
+;;(use-package ef-themes
+;; :ensure nil
+;;  :demand t
+;;  :config
+;;  (load-theme 'ef-elea-dark t)
+;;  (my/set-italic-comments))
 
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+   (load-theme 'forest-night t)
 
 ;; Frame defaults
 
