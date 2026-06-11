@@ -1,4 +1,12 @@
-;; Package System Setup
+;;; init.el --- Main configuration entry point -*- lexical-binding: t; -*-
+;;
+;;  Loads:
+;;    init.el          — this file (core, UI, packages)
+;;    org-config.el    — Org-mode: appearance & workflow
+;;    org-capture.el   — Capture templates & agenda
+;;    org-export.el    — Export settings (HTML, PDF, reveal.js)
+
+;;; .. Package bootstrap ....................................................
 
 (require 'package)
 
@@ -9,7 +17,6 @@
 
 (package-initialize)
 
-;; Bootstrap use-package
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
@@ -17,98 +24,74 @@
 (unless (package-installed-p 'bind-key)
   (package-install 'bind-key))
 
-(eval-when-compile
-  (require 'use-package))
-
+(eval-when-compile (require 'use-package))
 (require 'bind-key)
 
 (setq use-package-always-ensure t
-      use-package-always-defer t
+      use-package-always-defer  t
       use-package-expand-minimally t)
 
-;; Performance & Startup
+;;; .. Performance & startup ................................................
 
-;; Reset GC threshold after startup (set high in early-init.el)
 (add-hook 'emacs-startup-hook
           (lambda ()
             (setq gc-cons-threshold (* 16 1024 1024)
-                  gc-cons-percentage 0.1)))
-
-;; Profile startup time
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (message "Emacs loaded in %s with %d garbage collections."
-                     (format "%.2f seconds"
+                  gc-cons-percentage 0.1)
+            (message "Emacs ready in %s with %d GCs."
+                     (format "%.2fs"
                              (float-time
                               (time-subtract after-init-time before-init-time)))
                      gcs-done)))
 
-
-;; General Settings
+;;; .. Defaults .............................................................
 
 (setq-default
  ad-redefinition-action 'accept
- auto-save-default nil
- create-lockfiles nil
- fill-column 80
- help-window-select t
- indent-tabs-mode nil
- make-backup-files nil
- require-final-newline t
- tab-width 4
- truncate-lines nil
- vc-follow-symlinks t)
+ auto-save-default      nil
+ create-lockfiles       nil
+ fill-column            80
+ help-window-select     t
+ indent-tabs-mode       nil
+ make-backup-files      nil
+ require-final-newline  t
+ tab-width              4
+ truncate-lines         nil
+ vc-follow-symlinks     t)
+
+(setq scroll-conservatively 10
+      scroll-margin         8
+      read-process-output-max (* 1024 1024)
+      warning-minimum-level :error
+      ring-bell-function    'ignore)
 
 (defalias 'yes-or-no-p 'y-or-n-p)
-(setq ring-bell-function 'ignore)
-(setq confirm-kill-emacs 'y-or-n-p)
-
-(setq read-process-output-max (* 1024 1024)
-      warning-minimum-level :error)
 
 (setq custom-file (locate-user-emacs-file "custom.el"))
-(when (file-exists-p custom-file)
-  (load custom-file t))
+(when (file-exists-p custom-file) (load custom-file t))
+
+;;; .. Built-in minor modes .................................................
 
 (use-package recentf
-  :ensure nil
-  :demand t
+  :ensure nil :demand t
   :config
-  (setq recentf-max-saved-items 100
-        recentf-max-menu-items 15
-        recentf-auto-cleanup 'never)
+  (setq recentf-max-saved-items 200
+        recentf-max-menu-items  20
+        recentf-auto-cleanup    'never)
   (recentf-mode 1))
 
 (use-package savehist
-  :ensure nil
-  :demand t
+  :ensure nil :demand t
   :config
-  (setq history-length 100
+  (setq history-length 200
         history-delete-duplicates t
         savehist-save-minibuffer-history t)
   (savehist-mode 1))
 
-(use-package saveplace
-  :ensure nil
-  :demand t
-  :config
-  (save-place-mode 1))
-
-
-;; Visual Settings
-
-;; (internal-border-width . 0)
-
-(use-package display-line-numbers
-  :ensure nil
-  :hook (prog-mode . display-line-numbers-mode)
-  :config
-  (setq display-line-numbers-type 'absolute
-        display-line-numbers-width-start t))
+(use-package saveplace :ensure nil :demand t
+  :config (save-place-mode 1))
 
 (use-package paren
-  :ensure nil
-  :demand t
+  :ensure nil :demand t
   :config
   (setq show-paren-delay 0
         show-paren-style 'mixed
@@ -116,88 +99,122 @@
   (show-paren-mode 1))
 
 (use-package elec-pair
-  :ensure nil
-  :demand t
-  :config
-  (electric-pair-mode 1))
+  :ensure nil :demand t
+  :config (electric-pair-mode 1))
 
-(use-package pixel-scroll
-  :ensure nil
-  :demand t
-  :if (fboundp 'pixel-scroll-precision-mode)
-  :config
-  (pixel-scroll-precision-mode 1))
+;; Line numbers for code/text buffers
+(add-hook 'text-mode-hook 'display-line-numbers-mode)
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(setq display-line-numbers-type t)
 
-(setq scroll-margin 5
-      scroll-conservatively 101
-      scroll-preserve-screen-position t
-      mouse-wheel-scroll-amount '(1 ((shift) . 1))
-      mouse-wheel-progressive-speed nil)
+;;; .. Font .................................................................
 
-;; Font configuration
-
-(when (member "CaskaydiaCove Nerd Font" (font-family-list))
+(when (member "JetBrainsMono Nerd Font" (font-family-list))
   (set-face-attribute 'default nil
-                      :family "CaskaydiaCove Nerd Font"
-                      :height 125
-                      :weight 'regular))
+                      :family "JetBrainsMono Nerd Font"
+                      :height 138
+                      :weight 'regular)
+  ;; Italic faces use a slanted variant so they look distinct
+  (set-face-attribute 'italic nil :slant 'italic))
 
-;; Italic comments — applied after theme loads
-(defun my/set-italic-comments ()
-  "Make comments italic."
-  (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
-  (set-face-attribute 'font-lock-comment-delimiter-face nil :slant 'italic))
+;;; .. Frame title (italic buffer name on Linux desktop border) .............
+(setq frame-title-format
+      '(:eval
+        (let ((buf (or (buffer-file-name)
+                       (buffer-name))))
+          (format "𝘌𝘮𝘢𝘤𝘴 — %s" (file-name-nondirectory buf)))))
 
-;; (use-package moe-theme
-;;   :ensure nil
-;;   :demand t
-;;   :config
-;;   (load-theme 'moe-dark t)
-;;   (my/set-italic-comments))
+;;; .. Theme: doom-oceanic-next .............................................
 
-;;(use-package ef-themes
-;; :ensure nil
-;;  :demand t
-;;  :config
-;;  (load-theme 'ef-elea-dark t)
-;;  (my/set-italic-comments))
+(use-package doom-themes
+  :demand t
+  :config
+  (setq doom-themes-enable-bold   t
+        doom-themes-enable-italic t)
+  (load-theme 'doom-oceanic-next t)
+  (doom-themes-visual-bell-config)
+  (doom-themes-neotree-config)          ; neotree integration
+  (doom-themes-treemacs-config)
+  (doom-themes-org-config))
 
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-   (load-theme 'forest-night t)
+;;; .. Modeline: nano-modeline ..............................................
+(use-package nano-modeline
+  :demand t
+  :config
+  ;; Position: bottom (default mode-line position)
+  (setq nano-modeline-position 'nano-modeline-footer)
+  ;; Register per-mode handlers
+  (add-hook 'prog-mode-hook            #'nano-modeline-prog-mode)
+  (add-hook 'text-mode-hook            #'nano-modeline-text-mode)
+  (add-hook 'org-mode-hook             #'nano-modeline-org-mode)
+  (add-hook 'dired-mode-hook           #'nano-modeline-prog-mode)
+  (add-hook 'eat-mode-hook             #'nano-modeline-term-mode)
+  (add-hook 'term-mode-hook            #'nano-modeline-term-mode)
+  (add-hook 'messages-buffer-mode-hook #'nano-modeline-message-mode)
+  ;; Make prog the default for everything else
+  (nano-modeline-prog-mode t))
 
-;; Frame defaults
+;;; .. NeoTree (file sidebar) ...............................................
+(use-package neotree
+  :demand t
+  :bind ("<f8>" . neotree-toggle)
+  :config
+  ;; Use nerd-icons (already a dep of doom-themes / nerd-icons-dired)
+  (setq neo-theme                   (if (display-graphic-p) 'nerd-icons 'arrow)
+        neo-window-width            28
+        neo-window-fixed-size       nil   ; let it resize
+        neo-show-hidden-files       t
+        neo-auto-indent-point       t
+        neo-smart-open              t     ; jump to current file on open
+        neo-vc-integration          '(face char)  ; VCS state in sidebar
+        neo-mode-line-type          'none ; nano-modeline handles it
+        ;; Open neotree at project root, not CWD
+        projectile-switch-project-action 'neotree-projectile-action))
 
-(setq frame-title-format '("%b — Emacs"))
-(setq default-frame-alist
-      '((min-height . 1)
-        (min-width  . 1)
-        (internal-border-width . 0)
-        (vertical-scroll-bars   . nil)
-        (horizontal-scroll-bars . nil)))
+;; Helper: open neotree at the project root (git root preferred)
+(defun my/neotree-project-root ()
+  "Open NeoTree at the current project or file's directory."
+  (interactive)
+  (let* ((project (when (fboundp 'project-current)
+                    (project-current)))
+         (root    (if project
+                      (project-root project)
+                    (file-name-directory (or (buffer-file-name)
+                                             default-directory)))))
+    (neotree-dir root)
+    (neotree-find (buffer-file-name))))
 
+(global-set-key (kbd "C-c n") #'my/neotree-project-root)
 
-;; Completion Framework — Vertico & Friends
+;;; .. Line height & whitespace .............................................
+
+(setq-default line-spacing 0.2)
+
+(use-package whitespace
+  :ensure nil
+  :custom
+  (whitespace-display-mappings
+   '((space-mark 32 [183] [46])
+     (tab-mark    9 [187 9] [92 9])))
+  (whitespace-style '(face spaces tabs trailing space-mark tab-mark))
+  :init
+  (setq whitespace-global-modes
+        '(not text-mode org-mode markdown-mode bibtex-mode erc-mode
+              magit-mode help-mode apropos-mode compilation-mode
+              shell-mode eshell-mode vterm-mode eat-mode
+              dired-mode wdired-mode message-mode))
+  :config
+  (global-whitespace-mode 1))
+
+;;; .. Completion framework: Vertico + Orderless + Marginalia + Consult .....
+
 (use-package vertico
   :demand t
   :config
-  (setq vertico-cycle t
+  (setq vertico-cycle  t
         vertico-resize nil
-        vertico-count 12)
+        vertico-count  12)
   (vertico-mode 1))
-
-;; Floating posframe for M-x, find-file and all minibuffer commands.
-;; Requires a graphical Emacs session (no-op in terminal).
-(use-package vertico-posframe
-  :demand t
-  :after vertico
-  :if (display-graphic-p)
-  :config
-  (setq vertico-posframe-width 100
-        vertico-posframe-height vertico-count
-        vertico-posframe-border-width 2
-        vertico-posframe-poshandler #'posframe-poshandler-frame-center ;; centeres the floating minibuffers
-        vertico-posframe-parameters '((left-fringe . 8) (right-fringe . 8)))
-  (vertico-posframe-mode 1))
 
 (use-package orderless
   :demand t
@@ -208,17 +225,8 @@
         '((file (styles basic partial-completion)))))
 
 (use-package marginalia
-  :demand t
-  :after vertico
-  :config
-  (marginalia-mode 1))
-
-;; Nerd icons in the minibuffer completion list
-(use-package nerd-icons-completion
-  :after marginalia
-  :config
-  (nerd-icons-completion-mode)
-  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+  :demand t :after vertico
+  :config (marginalia-mode 1))
 
 (use-package consult
   :bind (("C-s"     . consult-line)
@@ -231,35 +239,29 @@
          ("M-s r"   . consult-ripgrep)))
 
 (use-package embark
-  :bind (("C-." . embark-act)
-         ("M-." . embark-dwim)
+  :bind (("C-."   . embark-act)
+         ("M-."   . embark-dwim)
          ("C-h B" . embark-bindings)))
 
-(use-package embark-consult
-  :after (embark consult))
+(use-package embark-consult :after (embark consult))
 
-
-;; Programming — General
+;;; .. Programming — general ................................................
 
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
   :config
-  (setq highlight-indent-guides-method 'character
-        highlight-indent-guides-character ?\│
-        highlight-indent-guides-responsive 'top
-        highlight-indent-guides-auto-enabled t
-        highlight-indent-guides-auto-odd-face-perc 5
-        highlight-indent-guides-auto-even-face-perc 10
+  (setq highlight-indent-guides-method           'character
+        highlight-indent-guides-character        ?│
+        highlight-indent-guides-responsive       'top
+        highlight-indent-guides-auto-enabled     t
+        highlight-indent-guides-auto-odd-face-perc       5
+        highlight-indent-guides-auto-even-face-perc      10
         highlight-indent-guides-auto-character-face-perc 15))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
-
-;; Autocompletion — Corfu (replaces Company)
-;;
-;; Corfu is the modern choice: it uses Emacs' native completion-at-point API
-;; directly, pairs perfectly with Eglot, and renders a clean childframe popup.
+;;; .. Autocompletion — Corfu + Cape + kind-icons ...........................
 
 (use-package corfu
   :demand t
@@ -268,62 +270,64 @@
          ("C-p"   . corfu-previous)
          ("<tab>" . corfu-insert))
   :custom
-  (corfu-cycle t)
-  (corfu-auto t)
-  (corfu-auto-delay 0.15)
-  (corfu-auto-prefix 1)
+  (corfu-cycle           t)
+  (corfu-auto            t)
+  (corfu-auto-delay      0.2)
+  (corfu-auto-prefix     2)           ; 2 chars before popup (was 1, too eager)
   (corfu-preview-current nil)
-  (corfu-min-width 20)
-  (corfu-quit-no-match t)
-  (corfu-on-exact-match 'insert)
+  (corfu-min-width       30)
+  (corfu-quit-no-match   t)
+  (corfu-on-exact-match  nil)         ; ← fixes Java partial-match swallow
   :config
-  ;; Show doc popup next to completions (replaces company-quickhelp)
-  (setq corfu-popupinfo-delay '(0.5 . 0.2))
+  (setq corfu-popupinfo-delay '(0.4 . 0.2))
   (corfu-popupinfo-mode 1)
-  ;; Persist history across sessions
   (with-eval-after-load 'savehist
     (corfu-history-mode 1)
     (add-to-list 'savehist-additional-variables 'corfu-history))
   (global-corfu-mode 1))
 
-;; Cape provides extra completion backends (dabbrev, file paths, etc.)
+;; LSP kind icons in the Corfu popup (method/field/class/var indicators)
+(use-package nerd-icons-corfu
+  :after corfu
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
+;; Cape: extra completion backends
 (use-package cape
   :demand t
   :config
-  (add-hook 'completion-at-point-functions #'cape-dabbrev 20)
-  (add-hook 'completion-at-point-functions #'cape-file 20)
-  (add-hook 'completion-at-point-functions #'cape-keyword 20))
+  ;; For Java buffers: merge eglot capf with dabbrev so local identifiers
+  ;; also appear.  cape-capf-super deduplicates and merges.
+  (defun my/java-capf-setup ()
+    (setq-local completion-at-point-functions
+                (list (cape-capf-super
+                       #'eglot-completion-at-point
+                       #'cape-dabbrev)
+                      #'cape-file)))
+  (add-hook 'java-mode-hook #'my/java-capf-setup)
 
-;; Kind-icon adds VS Code-style icons to the Corfu popup
-(use-package kind-icon
-  :after corfu
-  :custom
-  (kind-icon-default-face 'corfu-default)
-  :config
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+  ;; Global fallbacks
+  (add-hook 'completion-at-point-functions #'cape-dabbrev 90)
+  (add-hook 'completion-at-point-functions #'cape-file    90)
+  (add-hook 'completion-at-point-functions #'cape-keyword 90))
 
-
-;; Flycheck — Syntax checking
+;;; .. Syntax checking — Flycheck ...........................................
 
 (use-package flycheck
   :hook (prog-mode . flycheck-mode)
   :config
   (setq flycheck-check-syntax-automatically '(save mode-enabled)
-        flycheck-display-errors-delay 0.25))
+        flycheck-display-errors-delay       0.25))
 
-
-;; Snippets
+;;; .. Snippets .............................................................
 
 (use-package yasnippet
   :hook (prog-mode . yas-minor-mode)
-  :config
-  (yas-reload-all))
+  :config (yas-reload-all))
 
-(use-package yasnippet-snippets
-  :after yasnippet)
+(use-package yasnippet-snippets :after yasnippet)
 
-
-;; EWW Browser
+;;; .. EWW browser ..........................................................
 
 (use-package eww
   :ensure nil
@@ -335,45 +339,33 @@
          ("o" . eww)
          ("&" . eww-browse-with-external-browser))
   :config
-  ;; Readability
-  (setq shr-use-fonts t               ; variable-pitch fonts for prose
-        shr-use-colors nil             ; ignore garish site colors
-        shr-indentation 4              ; left margin
-        shr-width 80                   ; max line width, like your fill-column
-        shr-max-image-proportion 0.5   ; images don't take over the buffer
-        shr-inhibit-images nil)        ; images on by default, toggle with M-I
-
-  ;; EWW itself
-  (setq eww-search-prefix "https://duckduckgo.com/html/?q="
-        eww-history-limit 100
-        eww-download-directory (expand-file-name "~/Downloads/")
+  (setq shr-use-fonts            t
+        shr-use-colors           nil
+        shr-indentation          4
+        shr-width                80
+        shr-max-image-proportion 0.5
+        shr-inhibit-images       nil
+        eww-search-prefix        "https://duckduckgo.com/html/?q="
+        eww-history-limit        100
+        eww-download-directory   (expand-file-name "~/Downloads/")
         eww-browse-url-new-window-is-tab nil)
-
-  ;; Use variable-pitch (serif/sans) face for readability in eww buffers
-  (add-hook 'eww-mode-hook #'variable-pitch-mode)
-
-  ;; Auto-use eww's readable mode (strips nav, ads, sidebars) on page load.
-  ;; Comment this out if you want the raw page instead.
+  (add-hook 'eww-mode-hook  #'variable-pitch-mode)
   (add-hook 'eww-after-render-hook #'eww-readable))
 
-;; Documentation popups — Eldoc Box
+;;; .. Documentation — Eldoc Box ............................................
 
 (use-package eldoc-box
   :hook (eglot-managed-mode . eldoc-box-hover-mode)
   :custom
-  ;; Show the popup in the upper corner; use eldoc-box-hover-at-point-mode
-  (eldoc-box-max-pixel-width  500)
-  (eldoc-box-max-pixel-height 300)
+  (eldoc-box-max-pixel-width  520)
+  (eldoc-box-max-pixel-height 320)
   :config
-  ;; Let Eglot render Markdown in the doc box (needs markdown-mode installed)
   (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly))
 
-;; Markdown mode for prettier Javadoc rendering inside eldoc-box
 (use-package markdown-mode
   :mode ("\\.md\\'" . markdown-mode))
 
-
-;; Java Development with Eglot
+;;; .. LSP — Eglot ..........................................................
 
 (use-package eglot
   :ensure nil
@@ -383,77 +375,72 @@
          ("C-c l r" . eglot-rename)
          ("C-c l f" . eglot-format)
          ("C-c l d" . eldoc-doc-buffer)
-         ("C-c l o" . eglot-code-action-organize-imports))
+         ("C-c l o" . eglot-code-action-organize-imports)
+         ("C-c l h" . eglot-inlay-hints-mode))
   :config
-  (setq eglot-autoshutdown t
-        eglot-send-changes-idle-time 0.5
-        eglot-sync-connect nil
-        eglot-connect-timeout 10
-        eglot-events-buffer-size 0
-        eglot-confirm-server-initiated-edits nil)
+  (setq eglot-autoshutdown               t
+        eglot-send-changes-idle-time     0.3
+        eglot-sync-connect               nil
+        eglot-connect-timeout            15
+        eglot-events-buffer-size         0
+        eglot-confirm-server-initiated-edits nil
+        ;; Let JDTLS resolve imports etc. eagerly
+        eglot-ignored-server-capabilities '())
 
-  ;; JDTLS Configuration
-  (defvar my/jdtls-path (expand-file-name "~/.local/share/jdtls"))
-  (defvar my/jdtls-workspace-path (expand-file-name "~/.cache/jdtls-workspace"))
+  ;; JDTLS .................................................................
+  (defvar my/jdtls-path        (expand-file-name "~/.local/share/jdtls"))
+  (defvar my/jdtls-workspace   (expand-file-name "~/.cache/jdtls-workspace"))
 
-  (unless (file-directory-p my/jdtls-workspace-path)
-    (make-directory my/jdtls-workspace-path t))
+  (unless (file-directory-p my/jdtls-workspace)
+    (make-directory my/jdtls-workspace t))
 
-  (defun my/jdtls-find-launcher-jar ()
-    "Find the Eclipse Equinox launcher jar in jdtls plugins directory."
-    (let ((plugins-dir (expand-file-name "plugins" my/jdtls-path)))
-      (when (file-directory-p plugins-dir)
-        (let ((jars (directory-files plugins-dir t "org\\.eclipse\\.equinox\\.launcher_.*\\.jar$")))
-          (when jars (car jars))))))
+  (defun my/jdtls-launcher-jar ()
+    "Return the Eclipse Equinox launcher jar path or nil."
+    (let ((plugins (expand-file-name "plugins" my/jdtls-path)))
+      (when (file-directory-p plugins)
+        (car (directory-files plugins t
+                              "org\\.eclipse\\.equinox\\.launcher_.*\\.jar$")))))
 
-  (defun my/jdtls-workspace-for-project ()
-    "Return workspace directory for current project."
-    (let* ((project-root (or (and (fboundp 'project-root)
-                                   (when-let ((proj (project-current)))
-                                     (project-root proj)))
-                             default-directory))
-           (project-name (file-name-nondirectory (directory-file-name project-root))))
-      (expand-file-name project-name my/jdtls-workspace-path)))
+  (defun my/jdtls-workspace-dir ()
+    "Per-project workspace directory."
+    (let* ((root (or (when-let ((p (and (fboundp 'project-current)
+                                        (project-current))))
+                       (project-root p))
+                     default-directory))
+           (name (file-name-nondirectory (directory-file-name root))))
+      (expand-file-name name my/jdtls-workspace)))
 
-  (let ((launcher-jar (my/jdtls-find-launcher-jar))
-        (config-dir (expand-file-name "config_linux" my/jdtls-path)))
-    (if (and launcher-jar (file-exists-p launcher-jar) (file-directory-p config-dir))
-        (progn
-          (message "JDTLS configured with jar: %s" launcher-jar)
-          (add-to-list 'eglot-server-programs
-                       `(java-mode . ("java"
-                                      "-Declipse.application=org.eclipse.jdt.ls.core.id1"
-                                      "-Dosgi.bundles.defaultStartLevel=4"
-                                      "-Declipse.product=org.eclipse.jdt.ls.core.product"
-                                      "-Dlog.protocol=true"
-                                      "-Dlog.level=ALL"
-                                      "-Xms256m"
-                                      "-Xmx2048m"
-                                      "--add-modules=ALL-SYSTEM"
-                                      "--add-opens" "java.base/java.util=ALL-UNNAMED"
-                                      "--add-opens" "java.base/java.lang=ALL-UNNAMED"
-                                      "-jar" ,launcher-jar
-                                      "-configuration" ,config-dir
-                                      "-data" ,(my/jdtls-workspace-for-project)))))
-      (message "WARNING: JDTLS not found at %s - Java LSP features will not be available" my/jdtls-path)))
+  (let ((jar  (my/jdtls-launcher-jar))
+        (conf (expand-file-name "config_linux" my/jdtls-path)))
+    (if (and jar (file-exists-p jar) (file-directory-p conf))
+        (add-to-list 'eglot-server-programs
+                     `(java-mode .
+                       ("java"
+                        "-Declipse.application=org.eclipse.jdt.ls.core.id1"
+                        "-Dosgi.bundles.defaultStartLevel=4"
+                        "-Declipse.product=org.eclipse.jdt.ls.core.product"
+                        "-Dlog.protocol=true" "-Dlog.level=ALL"
+                        "-Xms256m" "-Xmx2048m"
+                        "--add-modules=ALL-SYSTEM"
+                        "--add-opens" "java.base/java.util=ALL-UNNAMED"
+                        "--add-opens" "java.base/java.lang=ALL-UNNAMED"
+                        "-jar"           ,jar
+                        "-configuration" ,conf
+                        "-data"          ,(my/jdtls-workspace-dir))))
+      (message "WARNING: JDTLS not found at %s" my/jdtls-path)))
 
+  ;; Silence apply-workspace-edit confirmation dialog
   (advice-add 'eglot--apply-workspace-edit :around
               (lambda (fn &rest args)
                 (let ((yes-or-no-p (lambda (&rest _) t)))
                   (apply fn args)))))
 
-;; C++ via clangd — hook eglot into c++-mode as well
+;; C / C++ via clangd
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs '((c++-mode c-mode) . ("clangd")))
-  (add-hook 'c++-mode-hook #'eglot-ensure)
-  (define-key eglot-mode-map (kbd "C-c l a") 'eglot-code-actions)
-  (define-key eglot-mode-map (kbd "C-c l r") 'eglot-rename)
-  (define-key eglot-mode-map (kbd "C-c l f") 'eglot-format)
-  (define-key eglot-mode-map (kbd "C-c l d") 'eldoc-doc-buffer)
-  (define-key eglot-mode-map (kbd "C-c l o") 'eglot-code-action-organize-imports))
+  (add-hook 'c++-mode-hook #'eglot-ensure))
 
-
-;; Java mode configuration
+;;; .. Java mode ............................................................
 
 (use-package cc-mode
   :ensure nil
@@ -461,7 +448,8 @@
          ("\\.cpp\\'"  . c++-mode)
          ("\\.cc\\'"   . c++-mode)
          ("\\.h\\'"    . c++-mode))
-  :bind (:map java-mode-map ("C-c i" . my/java-insert-common-imports))
+  :bind (:map java-mode-map
+         ("C-c i" . my/java-insert-common-imports))
   :config
   (setq c-basic-offset 4
         java-ts-mode-indent-offset 4)
@@ -469,85 +457,117 @@
   (defun my/java-insert-common-imports ()
     "Insert commonly used Java imports."
     (interactive)
-    (let ((imports '("java.util.*" "java.io.*" "java.nio.file.*" "java.util.stream.*")))
+    (let ((imports '("java.util.*" "java.io.*"
+                     "java.nio.file.*" "java.util.stream.*")))
       (save-excursion
         (goto-char (point-min))
         (search-forward "package " nil t)
         (forward-line 1)
-        (dolist (import imports)
-          (insert (format "import %s;\n" import)))))))
+        (dolist (i imports)
+          (insert (format "import %s;\n" i)))))))
 
 (use-package compile
   :ensure nil
-  :hook (java-mode . my/java-compile-command)
+  :hook (java-mode . my/java-compile-setup)
   :config
-  (defun my/java-compile-command ()
-    "Set compile command based on project structure."
-    (cond ((file-exists-p "pom.xml")      (setq-local compile-command "mvn compile"))
-          ((file-exists-p "build.gradle") (setq-local compile-command "gradle build"))
-          (t                              (setq-local compile-command "javac *.java")))))
+  (defun my/java-compile-setup ()
+    (cond
+     ((file-exists-p "pom.xml")       (setq-local compile-command "mvn compile"))
+     ((file-exists-p "build.gradle")  (setq-local compile-command "gradle build"))
+     (t                               (setq-local compile-command "javac *.java")))))
 
-
-;; Project Management
+;;; .. Project ..............................................................
 
 (use-package project
   :ensure nil
   :config
   (setq project-vc-extra-root-markers '(".project" "pom.xml" "build.gradle")))
 
+;;; .. Terminal — Eat .......................................................
+;;
+;; F4 → spawn (or jump to) an Eat terminal in a vertical split on the RIGHT.
 
-;; Eshell Configuration
+(use-package eat
+  :demand t
+  :config
+  (setq eat-kill-buffer-on-exit           t
+        eat-enable-yank-to-terminal       t
+        eat-enable-directory-tracking     t
+        eat-enable-shell-command-history  t
+        eat-enable-shell-prompt-annotation t
+        eat-term-scrollback-size          nil)
+  (with-eval-after-load 'eshell
+    (eat-eshell-mode)))
+
+(defun my/eat-toggle-right ()
+  "Toggle an Eat terminal in a vertical split on the right side.
+If the terminal buffer is already visible, close that window.
+Otherwise open a new window to the right (≈30% of frame width)."
+  (interactive)
+  (let* ((buf-name "*eat-terminal*")
+         (buf      (get-buffer buf-name))
+         (win      (and buf (get-buffer-window buf))))
+    (if win
+        ;; Already visible → close it
+        (delete-window win)
+      ;; Not visible → open a right split
+      (let* ((width (max 60 (/ (frame-width) 3)))
+             (new-win (split-window-right (- width))))
+        (select-window new-win)
+        (if buf
+            (switch-to-buffer buf)
+          (eat))))))
+
+(global-set-key (kbd "<f4>") #'my/eat-toggle-right)
+
+;;; .. File management — Dired ..............................................
+;;
+;; Show ALL metadata: permissions, size (human-readable), date, owner.
+;; We intentionally do NOT use dired-hide-details-mode so everything
+;; is visible — columns are aligned by GNU coreutils ls.
+;; Toggle details with ( if you ever need the clean view.
+
+(use-package dired
+  :ensure nil
+  ;; No :hook dired-hide-details-mode — we want all columns visible
+  :config
+  (setq dired-listing-switches
+        ;; -l long  -a all  -h human sizes  --time-style=long-iso  groups dirs first
+        "--almost-all -l -h --time-style=long-iso --group-directories-first"
+        dired-dwim-target                         t
+        dired-kill-when-opening-new-dired-buffer  t
+        dired-hide-details-hide-symlink-targets   nil
+        dired-recursive-copies                    'always
+        dired-recursive-deletes                   'top)
+  ;; Reuse the same dired buffer when going up/down directories
+  (put 'dired-find-alternate-file 'disabled nil))
+
+;; Colourful dired — extra faces for permissions, dates, sizes, symlinks
+(use-package diredfl
+  :hook (dired-mode . diredfl-mode))
+
+;; Nerd-icons in dired
+(use-package nerd-icons-dired
+  :hook (dired-mode . nerd-icons-dired-mode))
+
+;; Subtree expansion (inline directory tree without opening new buffers)
+(use-package dired-subtree
+  :after dired
+  :bind (:map dired-mode-map
+         ("<tab>"     . dired-subtree-toggle)
+         ("<backtab>" . dired-subtree-cycle)))
+
+;;; .. Eshell ...............................................................
 
 (use-package eshell
   :ensure nil
   :config
   (add-hook 'eshell-mode-hook (lambda () (corfu-mode -1)))
-  (setq eshell-visual-commands '("vi" "vim" "screen" "tmux" "top" "htop" "less" "more")
+  (setq eshell-visual-commands
+        '("vi" "vim" "screen" "tmux" "top" "htop" "less" "more")
         eshell-destroy-buffer-when-process-dies t))
 
-
-;; Org Mode
-
-(use-package org
-  :ensure nil
-  :mode ("\\.org\\'" . org-mode)
-  :config
-  (setq org-startup-indented t
-        org-pretty-entities t
-        org-hide-emphasis-markers t
-        org-ellipsis " ▾"))
-
-
-;; Terminal — Eat
-
-(use-package eat
-  :config
-  (setq eat-kill-buffer-on-exit t
-        eat-enable-yank-to-terminal t
-        eat-enable-directory-tracking t
-        eat-enable-shell-command-history t
-        eat-enable-shell-prompt-annotation t
-        eat-term-scrollback-size nil)
-  (with-eval-after-load 'eshell
-    (eat-eshell-mode)))
-
-
-;; File Management — Dired
-
-(use-package dired
-  :ensure nil
-  :hook (dired-mode . dired-hide-details-mode)
-  :config
-  (setq dired-listing-switches    "-alh --group-directories-first"
-        dired-dwim-target          t
-        dired-kill-when-opening-new-dired-buffer t
-        dired-hide-details-hide-symlink-targets nil))
-
-(use-package nerd-icons-dired
-  :hook (dired-mode . nerd-icons-dired-mode))
-
-
-;; Terminal Integration
+;;; .. ANSI colour in compilation ...........................................
 
 (use-package xterm-color
   :config
@@ -557,19 +577,34 @@
                 (set-process-filter
                  proc
                  (lambda (proc string)
-                   (comint-output-filter proc (xterm-color-filter string))))))))
+                   (comint-output-filter
+                    proc (xterm-color-filter string))))))))
 
+;;; .. Keybindings ..........................................................
 
-;; Keybindings
-
-(global-set-key (kbd "C-c c") #'compile)
-(global-set-key (kbd "C-c r") #'recompile)
-(global-set-key (kbd "C-c e") #'eshell)
-(global-set-key (kbd "C-c k") #'kill-this-buffer)
-(global-set-key (kbd "M-o")   #'other-window)
+(global-set-key (kbd "C-c c")   #'compile)
+(global-set-key (kbd "C-c r")   #'recompile)
+(global-set-key (kbd "C-c e")   #'eshell)
+(global-set-key (kbd "C-c k")   #'kill-this-buffer)
+(global-set-key (kbd "M-o")     #'other-window)
 (global-set-key (kbd "C-x C-b") #'ibuffer)
+;; <f4>  → eat terminal (defined above)
+;; <f8>  → neotree-toggle (defined in neotree use-package :bind)
+;; C-c n → neotree at project root (defined above)
 
+;;; .. Load Org sub-configs .................................................
 
-(message "Emacs configuration loaded successfully!")
+(defun my/load-config (file)
+  "Load FILE from `user-emacs-directory', warn if missing."
+  (let ((path (locate-user-emacs-file file)))
+    (if (file-exists-p path)
+        (load path nil t)
+      (message "Config file not found: %s" path))))
+
+(my/load-config "org-config.el")
+(my/load-config "org-capture.el")
+(my/load-config "org-export.el")
+
+(message "init.el loaded.")
 
 ;;; init.el ends here
