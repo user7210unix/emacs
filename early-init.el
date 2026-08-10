@@ -16,7 +16,7 @@
 (setq default-frame-alist
       '((min-height              . 1)
         (min-width               . 1)
-        (internal-border-width   . 12)   ; breathing room on linux desktop
+        (internal-border-width   . 0)   ; breathing room on linux desktop
         (vertical-scroll-bars    . nil)
         (horizontal-scroll-bars  . nil)
         (tool-bar-lines          . 0)
