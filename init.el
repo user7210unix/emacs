@@ -107,59 +107,58 @@
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (setq display-line-numbers-type t)
 
+
+(load-theme 'base16-darkmoss)
+
+
+;; Background transparency — 92% opaque
+(add-to-list 'default-frame-alist '(alpha-background . 92))
+(set-frame-parameter nil 'alpha-background 92)
+
 ;;; .. Font .................................................................
 
-(when (member "JetBrainsMono Nerd Font" (font-family-list))
+;; ;; Editor / buffer font
+;; (when (member "JetBrainsMono Nerd Font" (font-family-list))
+;;   (set-face-attribute 'default nil
+;;                       :family "JetBrainsMono Nerd Font"
+;;                       :height 138
+;;                       :weight 'regular))
+
+;; Editor / buffer font
+(when (member "Iosevka" (font-family-list))
   (set-face-attribute 'default nil
-                      :family "JetBrainsMono Nerd Font"
-                      :height 138
-                      :weight 'regular)
-  ;; Italic faces use a slanted variant so they look distinct
-  (set-face-attribute 'italic nil :slant 'italic))
+                      :family "Iosevka"
+                      :height 142
+                      :weight 'light))
+
+;; UI font — modeline, buffer titles, header/tab UI, etc.
+(when (member "Plus Jakarta Sans" (font-family-list))
+  (dolist (face '(mode-line
+                  mode-line-inactive
+                  mode-line-buffer-id
+                  header-line
+                  tab-line
+                  minibuffer-prompt))
+    (set-face-attribute face nil
+                        :family "Plus Jakarta Sans"
+                        :weight 'light
+                        :height 125)))
+
+;; Italic faces
+(set-face-attribute 'italic nil :slant 'italic)
 
 ;;; .. Frame title (italic buffer name on Linux desktop border) .............
 (setq frame-title-format
       '(:eval
         (let ((buf (or (buffer-file-name)
                        (buffer-name))))
-          (format "𝘌𝘮𝘢𝘤𝘴 — %s" (file-name-nondirectory buf)))))
-
-;;; .. Theme: doom-oceanic-next .............................................
-
-(use-package doom-themes
-  :demand t
-  :config
-  (setq doom-themes-enable-bold   t
-        doom-themes-enable-italic t)
-  (load-theme 'doom-oceanic-next t)
-  (doom-themes-visual-bell-config)
-  (doom-themes-neotree-config)          ; neotree integration
-  (doom-themes-treemacs-config)
-  (doom-themes-org-config))
-
-;;; .. Modeline: nano-modeline ..............................................
-(use-package nano-modeline
-  :demand t
-  :config
-  ;; Position: bottom (default mode-line position)
-  (setq nano-modeline-position 'nano-modeline-footer)
-  ;; Register per-mode handlers
-  (add-hook 'prog-mode-hook            #'nano-modeline-prog-mode)
-  (add-hook 'text-mode-hook            #'nano-modeline-text-mode)
-  (add-hook 'org-mode-hook             #'nano-modeline-org-mode)
-  (add-hook 'dired-mode-hook           #'nano-modeline-prog-mode)
-  (add-hook 'eat-mode-hook             #'nano-modeline-term-mode)
-  (add-hook 'term-mode-hook            #'nano-modeline-term-mode)
-  (add-hook 'messages-buffer-mode-hook #'nano-modeline-message-mode)
-  ;; Make prog the default for everything else
-  (nano-modeline-prog-mode t))
-
+          (format "%s" (file-name-nondirectory buf)))))
+ 
 ;;; .. NeoTree (file sidebar) ...............................................
 (use-package neotree
   :demand t
   :bind ("<f8>" . neotree-toggle)
   :config
-  ;; Use nerd-icons (already a dep of doom-themes / nerd-icons-dired)
   (setq neo-theme                   (if (display-graphic-p) 'nerd-icons 'arrow)
         neo-window-width            28
         neo-window-fixed-size       nil   ; let it resize
