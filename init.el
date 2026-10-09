@@ -107,23 +107,7 @@
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (setq display-line-numbers-type t)
 
-
-(load-theme 'base16-darkmoss)
-
-
-;; Background transparency — 92% opaque
-(add-to-list 'default-frame-alist '(alpha-background . 92))
-(set-frame-parameter nil 'alpha-background 92)
-
 ;;; .. Font .................................................................
-
-;; ;; Editor / buffer font
-;; (when (member "JetBrainsMono Nerd Font" (font-family-list))
-;;   (set-face-attribute 'default nil
-;;                       :family "JetBrainsMono Nerd Font"
-;;                       :height 138
-;;                       :weight 'regular))
-
 ;; Editor / buffer font
 (when (member "Iosevka" (font-family-list))
   (set-face-attribute 'default nil
@@ -290,6 +274,11 @@
   :after corfu
   :config
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
+;; Theme
+(add-to-list 'custom-theme-load-path "~/.emacs.d/hannover-theme/")
+(add-to-list 'load-path "~/.emacs.d/hannover-theme/")
+(load-theme 'hannover-day t)
 
 ;; Cape: extra completion backends
 (use-package cape
